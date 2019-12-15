@@ -1,3 +1,5 @@
+import 'three/DragControls';
+
 window.addEventListener('DOMContentLoaded', init);
 
 function init()
@@ -45,14 +47,19 @@ function init()
         }
     }
 
+    var cubes = [];
     const cube_material = new THREE.MeshStandardMaterial({
-        color: 0x2299ff
+        color: 0xff0000
     });
     const cube = new THREE.Mesh(tile_geometry, cube_material);
     cube.position.x = 0;
     cube.position.y = 30;
     cube.position.z = 0;
     scene.add(cube);
+    cubes.push(cube);
+
+    // Drag controls
+    var controls = new THREE.DragControls(cubes, camera, renderer.domElement);
 
     // 平行光源
     const light = new THREE.DirectionalLight(0xFFFFFF);
@@ -63,7 +70,6 @@ function init()
 
     canvas.addEventListener('mousemove', handleMouseMove);
 
-    // 初回実行
     tick();
 
     function handleMouseMove()
