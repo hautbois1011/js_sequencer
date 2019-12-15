@@ -10,40 +10,55 @@ function init()
         canvas: document.querySelector('#sequencer')
     });
     renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(width, height);
+    renderer.setSize(width, height);
 
-  // シーンを作成
-  const scene = new THREE.Scene();
+    // Create scene
+    const scene = new THREE.Scene();
 
-  // カメラを作成
-  const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 0, +1000);
+    // カメラを作成
+    const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
+    camera.position.set(500, 500, 500);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-  // 箱を作成
-  const geometry = new THREE.BoxGeometry(500, 500, 500);
-  const material = new THREE.MeshStandardMaterial({color: 0x0000FF});
-  const box = new THREE.Mesh(geometry, material);
-  scene.add(box);
+    // Create Tile
+    const tile_material = new THREE.MeshStandardMaterial({
+        color: 0x2299ff,
+        roughness: 0.1,
+        metalness: 0.2
+    });
+    const tile_geometry = new THREE.BoxGeometry(45, 45, 45);
 
-  // 平行光源
-  const light = new THREE.DirectionalLight(0xFFFFFF);
-  light.intensity = 2; // 光の強さを倍に
-  light.position.set(1, 1, 1);
-  // シーンに追加
-  scene.add(light);
+    for(let i = 0; i < 20; i++)
+    {
+        for(let j = 0; j < 20; j++)
+        {
+            const tile = new THREE.Mesh(tile_geometry, tile_material);
+            tile.position.x = (i-10)*50;
+            tile.position.y = 0;
+            tile.position.z = (j-10)*50;
+            scene.add(tile);
+        }
+    }
 
-  // 初回実行
-  tick();
+    const cube = new THREE.Mesh(tile_geometry, tile_material);
+    cube.position.x = 0;
+    cube.position.y = 50;
+    cube.position.z = 0;
+    scene.add(cube);
 
-  function tick() {
-    requestAnimationFrame(tick);
+    // 平行光源
+    const light = new THREE.DirectionalLight(0xFFFFFF);
+    light.position.set(500, 300, 500);
+    scene.add(light);
 
-    // 箱を回転させる
-    box.rotation.x += 0.01;
-    box.rotation.y += 0.01;
+    // 初回実行
+    tick();
 
-    // レンダリング
-    renderer.render(scene, camera);
-  }
+    function tick() {
+        requestAnimationFrame(tick);
+
+        // レンダリング
+        renderer.render(scene, camera);
+    }
 }
 
