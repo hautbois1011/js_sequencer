@@ -1,12 +1,16 @@
 import 'three/DragControls';
+import 'three/TrackballControls';
 
 window.addEventListener('DOMContentLoaded', init);
+
+var mouse_x = 0;
+var mouse_y = 0;
 
 function init()
 {
     const width = 960;
     const height = 540;
-    
+
     const mouse = new THREE.Vector2();
 
     const canvas = document.querySelector('#sequencer');
@@ -23,19 +27,19 @@ function init()
 
     // Create camera 
     const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
-    camera.position.set(500, 500, 700);
+    camera.position.set(500, 700, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create Tile
     const tile_list = [];
-    const tile_geometry = new THREE.BoxBufferGeometry(45, 25, 45);
+    const tile_geometry = new THREE.BoxBufferGeometry(45, 45, 45);
 
     for(let i = 0; i < 20; i++)
     {
         for(let j = 0; j < 20; j++)
         {
             const tile_material = new THREE.MeshStandardMaterial({
-                color: 0x2299ff
+                color: 0x0000ff
             });
             const tile = new THREE.Mesh(tile_geometry, tile_material);
             tile.position.x = (i-10)*50;
@@ -47,6 +51,7 @@ function init()
         }
     }
 
+    // test cube
     var cubes = [];
     const cube_material = new THREE.MeshStandardMaterial({
         color: 0xff0000
@@ -58,34 +63,70 @@ function init()
     scene.add(cube);
     cubes.push(cube);
 
-    // Drag controls
-    var controls = new THREE.DragControls(cubes, camera, renderer.domElement);
+    // Ambient Light
+    const ambi_light = new THREE.AmbientLight(0xffffff, 1.0);
+    scene.add(ambi_light);
 
     // 平行光源
-    const light = new THREE.DirectionalLight(0xFFFFFF);
-    light.position.set(500, 300, 500);
+    const light = new THREE.DirectionalLight(0xffffff);
+    light.position.set(0, 700, 0);
     scene.add(light);
 
     const raycaster = new THREE.Raycaster();
 
     canvas.addEventListener('mousemove', handleMouseMove);
 
+    // Drag controls
+    // var controls = new THREE.DragControls(cubes, camera, renderer.domElement);
+    // controls.addEventListener('drag', onCubeDrag);
+    // controls.addEventListener('dragstart', onCubeDrugStart);
+    // controls.addEventListener('dragend', onCubeDragEnd);
+
+    // Trackball controls]
+    var trackball = new THREE.TrackballControls(camera, renderer.domElement);
+    trackball.rotateSpeed = 1.0;
+    trackball.zoomSpeed = 1.2;
+    trackball.panSpeed = 0.8;
+
     tick();
 
     function handleMouseMove()
     {
-        const element = event.currentTarget;
+        var element = event.currentTarget;
 
         // position of mouse on canvas
-        const x = event.clientX - element.offsetLeft;
-        const y = event.clientY - element.offsetTop;
+        mouse_x = event.clientX - element.offsetLeft;
+        mouse_y = event.clientY - element.offsetTop;
         // width and height of canvas
         const w = element.offsetWidth;
         const h = element.offsetHeight;
         // position of mouse ([-1, 1])
-        mouse.x = (x / w) * 2 - 1;
-        mouse.y = -(y / h) * 2 + 1;
+        mouse.x = (mouse_x / w) * 2 - 1;
+        mouse.y = -(mouse_y / h) * 2 + 1;
 	}
+
+    // function onCubeDrag(event)
+    // {
+    //     event.object.position.y = 30;
+    // }
+    //
+    // function onCubeDrugStart(event)
+    // {
+    //     event.object.material.emissive.set(0xaaaaaa);
+    //     // position of mouse on canvas
+    //     event.object.position.x = mouse_x;
+    //     event.object.position.z = mouse_y;
+    // }
+    //
+    // function onCubeDragEnd(event)
+    // {
+    //     event.object.material.emissive.set(0x000000);
+    //
+    //     var orig_x = event.object.position.x;
+    //     var orig_z = event.object.position.z;
+    //     event.object.position.x = Math.round(orig_x/50) * 50;
+    //     event.object.position.z = Math.round(orig_z/50) * 50;
+    // }
 
     function tick() {
         // raycast
@@ -94,12 +135,15 @@ function init()
         tile_list.map((mesh) => {
             if (intersects.length > 0 && mesh === intersects[0].object) {
                 // make yellow 
-                mesh.material.color.setHex(0xffff00);
+                mesh.material.color.setHex(0xaaaa00);
             } else {
                 // default color
-                mesh.material.color.setHex(0x2299ff);
+                mesh.material.color.setHex(0x0000ff);
             }
         });
+
+        // Trackball
+        trackball.update();
 
         // rendering
         renderer.render(scene, camera);
