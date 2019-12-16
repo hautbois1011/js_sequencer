@@ -9,7 +9,6 @@ module.exports = {
         filename: 'bundle.js' // 出力先のファイル名
     },
     resolve: {
-        // 使用したいコントロールやレンダラを定義しておきます。(下記は一例です。使用しないものは除いておいてよいです)
         alias: {
             // トラックボール
             'three/TrackballControls': path.join(__dirname, 'node_modules/three/examples/js/controls/TrackballControls.js'),
@@ -20,7 +19,6 @@ module.exports = {
         }
     },
     plugins: [
-        // THREE.Scene などの形式で three.js のオブジェクトを使用できるようにします。
         new webpack.ProvidePlugin({
             'THREE': 'three/build/three'
         })

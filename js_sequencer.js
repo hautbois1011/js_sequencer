@@ -3,9 +3,6 @@ import 'three/TrackballControls';
 
 window.addEventListener('DOMContentLoaded', init);
 
-var mouse_x = 0;
-var mouse_y = 0;
-
 function init()
 {
     const width = 960;
@@ -75,6 +72,7 @@ function init()
     const raycaster = new THREE.Raycaster();
 
     canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mousedown', handleMouseDown);
 
     // Drag controls
     // var controls = new THREE.DragControls(cubes, camera, renderer.domElement);
@@ -95,8 +93,8 @@ function init()
         var element = event.currentTarget;
 
         // position of mouse on canvas
-        mouse_x = event.clientX - element.offsetLeft;
-        mouse_y = event.clientY - element.offsetTop;
+        var mouse_x = event.clientX - element.offsetLeft;
+        var mouse_y = event.clientY - element.offsetTop;
         // width and height of canvas
         const w = element.offsetWidth;
         const h = element.offsetHeight;
@@ -104,6 +102,10 @@ function init()
         mouse.x = (mouse_x / w) * 2 - 1;
         mouse.y = -(mouse_y / h) * 2 + 1;
 	}
+
+    function handleMouseDown()
+    {
+    }
 
     // function onCubeDrag(event)
     // {
