@@ -1,44 +1,20 @@
 import Tone from 'tone';
 
-const synth = new Tone.Synth().toMaster();
+// const synth = new Tone.MetalSynth().toMaster();
+//
+// function playOneNote(time)
+// {
+//     synth.triggerAttackRelease('16n', time);
+// }
+//
+// export function setLoop(note_list)
+// {
+//     for(let i = 0; i < note_list.length; i++)
+//     {
+//         if(note_list[i])
+//             Tone.Transport.schedule(playOneNote, i * Tone.Time('16n'));
+//     }
+//     Tone.Transport.loopEnd = '1m';
+//     Tone.Transport.loop = true;
+// }
 
-// note:ドレミなどの音階を指定
-// dur:「4n」->「♩」(四分音符)、「8n」->「♪」(八分音符)
-// nullだと休符
-const data = [
-  { note: "E4", dur: "8n" },
-  { note: "F4", dur: "4n" },
-  [{ note: "G4", dur: "8n" }, { note: "G4", dur: "8n" }],
-  { note: "G4", dur: "4n" },
-
-  { note: "E4", dur: "8n" },
-  [{ note: "G4", dur: "8n" }, { note: "C5", dur: "8n" }],
-  { note: "C5", dur: "8n" },
-  [{ note: "C5", dur: "8n" }, { note: "D5", dur: "2n" }],
-
-  null,
-  { note: "E5", dur: "8n" },
-  { note: "E5", dur: "8n" },
-  { note: "D5", dur: "2n" },
-
-  null,
-  [{ note: "C5", dur: "8n" },{ note: "A4", dur: "8n" }],
-  [{ note: "C5", dur: "2n" },{ note: "C5", dur: "2n" }],
-];
-
-const seq = new Tone.Sequence((time, { note, dur }) => {
-    synth.triggerAttackRelease(note, dur, time);
-}, data, "4n").start(0);
-seq.loop = false;
-Tone.Transport.bpm.value = 150; // テンポ
-
-document.querySelector("[type=button]").addEventListener("click", (e) => {
-    Tone.Transport.start();
-});
-
-var ToneBlock = function(instrument, note, velocity, duration) {
-    this.instrument = instrument;
-    this.note = note;
-    this.velocity = velocity;
-    this.duration = duration;
-};

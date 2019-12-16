@@ -1,16 +1,39 @@
-const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
-document.addEventListener(eventName, initAudioContext);
-function initAudioContext(){
-  document.removeEventListener(eventName, initAudioContext);
-  // wake up AudioContext
-  ctx.resume();
-}
-
 import 'three/DragControls';
 import 'three/TrackballControls';
-import './toneblock.js';
+import Tone from 'tone';
+import { setTimeout } from 'timers';
 
 window.addEventListener('DOMContentLoaded', init);
+// setTimeout(demo, 5000);
+
+//------------------------------------------------------------------
+
+function setLoop(note_list)
+{
+    const synth = new Tone.MetalSynth().toMaster();
+    Tone.Transport.cancel();
+
+    function playOneNote(time)
+    {
+        synth.triggerAttackRelease('32n', time);
+    }
+
+    for(let i = 0; i < note_list.length; i++)
+    {
+        if(note_list[i])
+            Tone.Transport.schedule(playOneNote, i * Tone.Time('16n'));
+    }
+    Tone.Transport.loopEnd = '1m';
+    Tone.Transport.loop = true;
+    Tone.Transport.bpm.value = 120;
+}
+
+//start/stop the transport
+document.getElementById('play').addEventListener('click', e => {
+    Tone.Transport.toggle();
+});
+
+//-------------------------------------------------------------------
 
 function init()
 {
@@ -33,35 +56,35 @@ function init()
 
     // Create camera 
     const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
-    camera.position.set(500, 700, 200);
+    camera.position.set(100, 700, 100);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create Tile
-    const tile_list = new Array(16);
-    for(let y = 0; y < 16; y++)
+    const tile_list = new Array(4);
+    for(let y = 0; y < 4; y++)
     {
-        tile_list[y] = new Array(4).fill(null);
+        tile_list[y] = new Array(16);
     }
 
     const tile_geometry = new THREE.BoxBufferGeometry(45, 45, 45);
 
-    var note_table = new Array(16);
-    for(let y = 0; y < 16; y++)
+    var note_table = new Array(4);
+    for(let y = 0; y < 4; y++)
     {
-        note_table[y] = new Array(4).fill(false);
+        note_table[y] = new Array(16).fill(false);
     }
 
-    for(let i = 0; i < 16; i++)
+    for(let i = 0; i < 4; i++)
     {
-        for(let j = 0; j < 4; j++)
+        for(let j = 0; j < 16; j++)
         {
             const tile_material = new THREE.MeshStandardMaterial({
                 color: 0x0000ff
             });
             const tile = new THREE.Mesh(tile_geometry, tile_material);
-            tile.position.x = (i-8)*50;
+            tile.position.x = (i-2)*50;
             tile.position.y = 0;
-            tile.position.z = (j-2)*50;
+            tile.position.z = (j-8)*50;
             scene.add(tile);
 
             tile_list[i][j] = tile;
@@ -111,21 +134,23 @@ function init()
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(tile_list.flat());
         if(intersects.length > 0) {
-            for(let i = 0; i < 16; i++) {
-                for(let j = 0; j < 4; j++) {
+            for(let i = 0; i < 4; i++) {
+                for(let j = 0; j < 16; j++) {
                     if (tile_list[i][j] === intersects[0].object) {
                         if(note_table[i][j] == false) {
                             note_table[i][j] = true;
                             tile_list[i][j].material.color.setHex(0xffff00);
                         } else {
                             note_table[i][j] = false;
-                            tile_list[i][j].material.color.setHex(0x0000ff)
+                            tile_list[i][j].material.color.setHex(0x0000ff);
                         }
                     }
                 }
             }
         }
+        setLoop(note_table[0]);
     }
+
 
     function tick() {
         // raycast
@@ -133,16 +158,14 @@ function init()
         var flatten = tile_list.flat();
         const intersects = raycaster.intersectObjects(flatten);
         if(intersects.length > 0) {
-            for(let i = 0; i < 16; i++) {
-                for(let j = 0; j < 4; j++) {
+            for(let i = 0; i < 4; i++) {
+                for(let j = 0; j < 16; j++) {
                     if(note_table[i][j] == true)
                         continue;
 
                     if (tile_list[i][j] === intersects[0].object) {
-                        // make yellow 
                         tile_list[i][j].material.color.setHex(0x777700);
                     } else {
-                        // default color
                         tile_list[i][j].material.color.setHex(0x0000ff);
                     }
                 }
