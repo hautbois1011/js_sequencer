@@ -32,7 +32,6 @@ const seq = new Tone.Sequence((time, { note, dur }) => {
 seq.loop = false;
 Tone.Transport.bpm.value = 150; // テンポ
 
-console.log("tone");
 document.querySelector("[type=button]").addEventListener("click", (e) => {
     Tone.Transport.start();
 });

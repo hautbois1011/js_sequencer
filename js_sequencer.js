@@ -33,41 +33,40 @@ function init()
 
     // Create camera 
     const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
-    camera.position.set(500, 700, 0);
+    camera.position.set(500, 700, 200);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create Tile
-    const tile_list = [];
+    const tile_list = new Array(16);
+    for(let y = 0; y < 16; y++)
+    {
+        tile_list[y] = new Array(4).fill(null);
+    }
+
     const tile_geometry = new THREE.BoxBufferGeometry(45, 45, 45);
 
-    for(let i = 0; i < 20; i++)
+    var note_table = new Array(16);
+    for(let y = 0; y < 16; y++)
     {
-        for(let j = 0; j < 20; j++)
+        note_table[y] = new Array(4).fill(false);
+    }
+
+    for(let i = 0; i < 16; i++)
+    {
+        for(let j = 0; j < 4; j++)
         {
             const tile_material = new THREE.MeshStandardMaterial({
                 color: 0x0000ff
             });
             const tile = new THREE.Mesh(tile_geometry, tile_material);
-            tile.position.x = (i-10)*50;
+            tile.position.x = (i-8)*50;
             tile.position.y = 0;
-            tile.position.z = (j-10)*50;
+            tile.position.z = (j-2)*50;
             scene.add(tile);
 
-            tile_list.push(tile);
+            tile_list[i][j] = tile;
         }
     }
-
-    // test cube
-    var cubes = [];
-    const cube_material = new THREE.MeshStandardMaterial({
-        color: 0xff0000
-    });
-    const cube = new THREE.Mesh(tile_geometry, cube_material);
-    cube.position.x = 0;
-    cube.position.y = 30;
-    cube.position.z = 0;
-    scene.add(cube);
-    cubes.push(cube);
 
     // Ambient Light
     const ambi_light = new THREE.AmbientLight(0xffffff, 1.0);
@@ -82,12 +81,6 @@ function init()
 
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mousedown', handleMouseDown);
-
-    // Drag controls
-    // var controls = new THREE.DragControls(cubes, camera, renderer.domElement);
-    // controls.addEventListener('drag', onCubeDrag);
-    // controls.addEventListener('dragstart', onCubeDrugStart);
-    // controls.addEventListener('dragend', onCubeDragEnd);
 
     // Trackball controls]
     var trackball = new THREE.TrackballControls(camera, renderer.domElement);
@@ -114,44 +107,47 @@ function init()
 
     function handleMouseDown()
     {
+        // raycast
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(tile_list.flat());
+        if(intersects.length > 0) {
+            for(let i = 0; i < 16; i++) {
+                for(let j = 0; j < 4; j++) {
+                    if (tile_list[i][j] === intersects[0].object) {
+                        if(note_table[i][j] == false) {
+                            note_table[i][j] = true;
+                            tile_list[i][j].material.color.setHex(0xffff00);
+                        } else {
+                            note_table[i][j] = false;
+                            tile_list[i][j].material.color.setHex(0x0000ff)
+                        }
+                    }
+                }
+            }
+        }
     }
-
-    // function onCubeDrag(event)
-    // {
-    //     event.object.position.y = 30;
-    // }
-    //
-    // function onCubeDrugStart(event)
-    // {
-    //     event.object.material.emissive.set(0xaaaaaa);
-    //     // position of mouse on canvas
-    //     event.object.position.x = mouse_x;
-    //     event.object.position.z = mouse_y;
-    // }
-    //
-    // function onCubeDragEnd(event)
-    // {
-    //     event.object.material.emissive.set(0x000000);
-    //
-    //     var orig_x = event.object.position.x;
-    //     var orig_z = event.object.position.z;
-    //     event.object.position.x = Math.round(orig_x/50) * 50;
-    //     event.object.position.z = Math.round(orig_z/50) * 50;
-    // }
 
     function tick() {
         // raycast
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(tile_list);
-        tile_list.map((mesh) => {
-            if (intersects.length > 0 && mesh === intersects[0].object) {
-                // make yellow 
-                mesh.material.color.setHex(0xaaaa00);
-            } else {
-                // default color
-                mesh.material.color.setHex(0x0000ff);
+        var flatten = tile_list.flat();
+        const intersects = raycaster.intersectObjects(flatten);
+        if(intersects.length > 0) {
+            for(let i = 0; i < 16; i++) {
+                for(let j = 0; j < 4; j++) {
+                    if(note_table[i][j] == true)
+                        continue;
+
+                    if (tile_list[i][j] === intersects[0].object) {
+                        // make yellow 
+                        tile_list[i][j].material.color.setHex(0x777700);
+                    } else {
+                        // default color
+                        tile_list[i][j].material.color.setHex(0x0000ff);
+                    }
+                }
             }
-        });
+        }
 
         // Trackball
         trackball.update();
