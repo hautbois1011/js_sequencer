@@ -10,17 +10,22 @@ module.exports = {
     },
     resolve: {
         alias: {
+            // Tone
+            'tone': path.join(__dirname, 'node_modules/tone/build/Tone.js'),
             // トラックボール
             'three/TrackballControls': path.join(__dirname, 'node_modules/three/examples/js/controls/TrackballControls.js'),
             // 物体ドラッグ
             'three/DragControls': path.join(__dirname, 'node_modules/three/examples/js/controls/DragControls.js'),
             //// カメラ制御
             //'three/OrbitControls': path.join(__dirname, 'node_modules/three/examples/js/controls/OrbitControls.js'),
-        }
+        },
     },
     plugins: [
         new webpack.ProvidePlugin({
-            'THREE': 'three/build/three'
+            'THREE': 'three/build/three.js'
+        }),
+        new webpack.ProvidePlugin({
+            'Tone': 'tone/build/Tone.js'
         })
     ]
 }

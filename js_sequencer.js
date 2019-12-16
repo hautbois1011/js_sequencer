@@ -1,5 +1,14 @@
+const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup';
+document.addEventListener(eventName, initAudioContext);
+function initAudioContext(){
+  document.removeEventListener(eventName, initAudioContext);
+  // wake up AudioContext
+  ctx.resume();
+}
+
 import 'three/DragControls';
 import 'three/TrackballControls';
+import './toneblock.js';
 
 window.addEventListener('DOMContentLoaded', init);
 
