@@ -1,28 +1,35 @@
 import 'three/DragControls';
 import 'three/TrackballControls';
 import Tone from 'tone';
-import { setTimeout } from 'timers';
 
 window.addEventListener('DOMContentLoaded', init);
-// setTimeout(demo, 5000);
 
 //------------------------------------------------------------------
 
-function setLoop(note_list)
-{
-    const synth = new Tone.MetalSynth().toMaster();
-    Tone.Transport.cancel();
+const synth0 = new Tone.MembraneSynth().toMaster();
+const synth3 = new Tone.MetalSynth().toMaster();
 
-    function playOneNote(time)
-    {
+function setLoop(synth, note_list, eventid_list)
+{
+    function playOneNote(time) {
         synth.triggerAttackRelease('32n', time);
     }
 
-    for(let i = 0; i < note_list.length; i++)
-    {
-        if(note_list[i])
-            Tone.Transport.schedule(playOneNote, i * Tone.Time('16n'));
+    for(let i = 0; i < note_list.length; i++) {
+        if(eventid_list[i] != -1) {
+            console.log("delete" + eventid_list[i]);
+            Tone.Transport.clear(eventid_list[i]);
+            eventid_list[i] = -1;
+        }
     }
+
+    for(let i = 0; i < note_list.length; i++) {
+        if(note_list[i]) {
+            eventid_list[i] = Tone.Transport.schedule(playOneNote, i * Tone.Time('16n'));
+            console.log("add" + eventid_list[i]);
+        }
+    }
+
     Tone.Transport.loopEnd = '1m';
     Tone.Transport.loop = true;
     Tone.Transport.bpm.value = 120;
@@ -56,7 +63,7 @@ function init()
 
     // Create camera 
     const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
-    camera.position.set(100, 700, 100);
+    camera.position.set(-100, 700, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create Tile
@@ -64,6 +71,12 @@ function init()
     for(let y = 0; y < 4; y++)
     {
         tile_list[y] = new Array(16);
+    }
+
+    const eventid_list2 = new Array(4);
+    for(let y = 0; y < 4; y++)
+    {
+        eventid_list2[y] = new Array(16).fill(-1);
     }
 
     const tile_geometry = new THREE.BoxBufferGeometry(45, 45, 45);
@@ -147,8 +160,9 @@ function init()
                     }
                 }
             }
+            setLoop(synth0, note_table[0], eventid_list2[0]);
+            setLoop(synth3, note_table[3], eventid_list2[3]);
         }
-        setLoop(note_table[0]);
     }
 
 
