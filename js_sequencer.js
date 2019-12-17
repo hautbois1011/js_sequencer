@@ -6,6 +6,8 @@ window.addEventListener('DOMContentLoaded', init);
 
 const KIND = 4;
 var BLOCK = 16;
+var BPM = 120;
+var isPlaying = false;
 
 //------------------------------------------------------------------
 
@@ -38,11 +40,13 @@ function setLoop(synth, note_list, eventid_list)
 //start/stop the transport
 document.getElementById('play').addEventListener('click', e => {
     Tone.Transport.toggle();
+    isPlaying = !isPlaying;
 });
 
 // BPM changing
 document.getElementById('bpm').addEventListener('change', e => {
-    Tone.Transport.bpm.value = document.getElementById('bpm').value;
+    BPM = document.getElementById('bpm').value;
+    Tone.Transport.bpm.value = BPM;
 });
 
 //-------------------------------------------------------------------
@@ -118,7 +122,7 @@ function init()
     const ambi_light = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambi_light);
 
-    // 平行光源
+    // Horizontal lighting
     const light = new THREE.DirectionalLight(0xffffff);
     light.position.set(0, 700, 0);
     scene.add(light);
@@ -182,6 +186,7 @@ function init()
         }
     }
 
+    // Lighting a line
     function lighting(beat) {
         for(let i = 0; i < KIND; i++) {
             for(let j = 0; j < BLOCK; j++) {
@@ -204,6 +209,7 @@ function init()
         // note_table.map(li => {console.log(li)});
     }
 
+    // Lighting to the count
     var count = 0;
     function lightingSequence() {
         lighting(count);
@@ -215,12 +221,23 @@ function init()
     // Updating every tick
     var tick_count = 0;
     function tick() {
-        tick_count++;
-        if(tick_count == 30) {
+        if(isPlaying) {
+            var wait = Math.floor(900/BPM);
+            if(count % 2 == 1) {
+                wait++;
+            }
+            console.log(wait);
+            if(tick_count == wait) {
+                tick_count = 0;
+                lightingSequence();
+            }
+            tick_count++;
+        } else {
             tick_count = 0;
-            lightingSequence();
+            count = 0;
         }
 
+        // Coloring cubes
         for(let i = 0; i < KIND; i++) {
             for(let j = 0; j < BLOCK; j++) {
                 if(note_table[i][j] == 0) {
@@ -244,8 +261,8 @@ function init()
                 for(let j = 0; j < BLOCK; j++) {
                     if ((note_table[i][j] == 0 | note_table[i][j] == 2)
                             & tile_list[i][j] === intersects[0].object) {
+                        // Mouse hoverd cube
                         tile_list[i][j].material.color.setHex(0x777700);
-                    } else {
                     }
                 }
             }
