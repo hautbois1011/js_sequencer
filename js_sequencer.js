@@ -6,13 +6,26 @@ window.addEventListener('DOMContentLoaded', init);
 
 const KIND = 4;
 var BLOCK = 16;
+
 var BPM = 120;
 var isPlaying = false;
+
+var count = 0;
+var tick_count = 0;
+var margin = 0;
+var accum_margin = 0;
 
 //------------------------------------------------------------------
 
 const synth0 = new Tone.MembraneSynth().toMaster();
 const synth3 = new Tone.MetalSynth().toMaster();
+
+function loopInit() {
+    count = 0;
+    tick_count = 0;
+    margin = 0;
+    accum_margin = 0;
+}
 
 function setLoop(synth, note_list, eventid_list)
 {
@@ -41,12 +54,18 @@ function setLoop(synth, note_list, eventid_list)
 document.getElementById('play').addEventListener('click', e => {
     Tone.Transport.toggle();
     isPlaying = !isPlaying;
+    loopInit();
 });
 
 // BPM changing
 document.getElementById('bpm').addEventListener('change', e => {
     BPM = document.getElementById('bpm').value;
     Tone.Transport.bpm.value = BPM;
+    loopInit();
+    if(isPlaying) {
+        Tone.Transport.toggle();
+        Tone.Transport.toggle();
+    }
 });
 
 //-------------------------------------------------------------------
@@ -170,13 +189,10 @@ function init()
                             note_table[i][j] = 1;
                         } else if(note_table[i][j] == 2) {
                             note_table[i][j] = 3;
-                            // tile_list[i][j].material.color.setHex(0xff0000);
                         } else if(note_table[i][j] == 3) {
                             note_table[i][j] = 2;
-                            // tile_list[i][j].material.color.setHex(0xdddddd);
                         } else {
                             note_table[i][j] = 0;
-                            // tile_list[i][j].material.color.setHex(0x0000ff);
                         }
                     }
                 }
@@ -210,27 +226,27 @@ function init()
     }
 
     // Lighting to the count
-    var count = 0;
     function lightingSequence() {
-        lighting(count);
+        lighting(count % BLOCK);
         count++;
-        if(count == BLOCK)
-            count = 0;
     }
 
     // Updating every tick
-    var tick_count = 0;
     function tick() {
         if(isPlaying) {
             var wait = Math.floor(900/BPM);
-            if(count % 2 == 1) {
-                wait++;
+
+            if(count*(900/BPM - wait) - accum_margin >= 1) {
+                margin++;
+                accum_margin++;
             }
-            console.log(wait);
-            if(tick_count == wait) {
+
+            if(tick_count == wait + margin) {
+                margin = 0;
                 tick_count = 0;
                 lightingSequence();
             }
+
             tick_count++;
         } else {
             tick_count = 0;
