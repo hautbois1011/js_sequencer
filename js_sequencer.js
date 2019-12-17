@@ -4,6 +4,9 @@ import Tone from 'tone';
 
 window.addEventListener('DOMContentLoaded', init);
 
+const KIND = 4;
+var BLOCK = 16;
+
 //------------------------------------------------------------------
 
 const synth0 = new Tone.MembraneSynth().toMaster();
@@ -17,27 +20,29 @@ function setLoop(synth, note_list, eventid_list)
 
     for(let i = 0; i < note_list.length; i++) {
         if(eventid_list[i] != -1) {
-            console.log("delete" + eventid_list[i]);
             Tone.Transport.clear(eventid_list[i]);
             eventid_list[i] = -1;
         }
     }
 
     for(let i = 0; i < note_list.length; i++) {
-        if(note_list[i]) {
+        if(note_list[i] == 1 | note_list[i] == 3) {
             eventid_list[i] = Tone.Transport.schedule(playOneNote, i * Tone.Time('16n'));
-            console.log("add" + eventid_list[i]);
         }
     }
 
     Tone.Transport.loopEnd = '1m';
     Tone.Transport.loop = true;
-    Tone.Transport.bpm.value = 120;
 }
 
 //start/stop the transport
 document.getElementById('play').addEventListener('click', e => {
     Tone.Transport.toggle();
+});
+
+// BPM changing
+document.getElementById('bpm').addEventListener('change', e => {
+    Tone.Transport.bpm.value = document.getElementById('bpm').value;
 });
 
 //-------------------------------------------------------------------
@@ -63,33 +68,38 @@ function init()
 
     // Create camera 
     const camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2);
-    camera.position.set(-100, 700, 0);
+    camera.position.set(-400, 600, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create Tile
-    const tile_list = new Array(4);
-    for(let y = 0; y < 4; y++)
+    const tile_list = new Array(KIND);
+    for(let y = 0; y < KIND; y++)
     {
-        tile_list[y] = new Array(16);
+        tile_list[y] = new Array(BLOCK);
     }
 
-    const eventid_list2 = new Array(4);
-    for(let y = 0; y < 4; y++)
+    const eventid_list2 = new Array(KIND);
+    for(let y = 0; y < KIND; y++)
     {
-        eventid_list2[y] = new Array(16).fill(-1);
+        eventid_list2[y] = new Array(BLOCK).fill(-1);
     }
 
     const tile_geometry = new THREE.BoxBufferGeometry(45, 45, 45);
 
-    var note_table = new Array(4);
-    for(let y = 0; y < 4; y++)
+    // note table:
+    // 0: unselected & unlighted
+    // 1: selected & unlighted
+    // 2: unselected & lighted
+    // 3: selected & lighted
+    var note_table = new Array(KIND);
+    for(let y = 0; y < KIND; y++)
     {
-        note_table[y] = new Array(16).fill(false);
+        note_table[y] = new Array(BLOCK).fill(0);
     }
 
-    for(let i = 0; i < 4; i++)
+    for(let i = 0; i < KIND; i++)
     {
-        for(let j = 0; j < 16; j++)
+        for(let j = 0; j < BLOCK; j++)
         {
             const tile_material = new THREE.MeshStandardMaterial({
                 color: 0x0000ff
@@ -113,18 +123,20 @@ function init()
     light.position.set(0, 700, 0);
     scene.add(light);
 
+    // Raycaster
     const raycaster = new THREE.Raycaster();
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-
-    // Trackball controls]
+    // Trackball controls
     var trackball = new THREE.TrackballControls(camera, renderer.domElement);
     trackball.rotateSpeed = 1.0;
     trackball.zoomSpeed = 1.2;
     trackball.panSpeed = 0.8;
 
-    tick();
+    // Event Registration
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mousedown', handleMouseDown);
+
+    //----------------------------------------------------------------------------
 
     function handleMouseMove()
     {
@@ -147,15 +159,20 @@ function init()
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(tile_list.flat());
         if(intersects.length > 0) {
-            for(let i = 0; i < 4; i++) {
-                for(let j = 0; j < 16; j++) {
+            for(let i = 0; i < KIND; i++) {
+                for(let j = 0; j < BLOCK; j++) {
                     if (tile_list[i][j] === intersects[0].object) {
-                        if(note_table[i][j] == false) {
-                            note_table[i][j] = true;
-                            tile_list[i][j].material.color.setHex(0xffff00);
+                        if(note_table[i][j] == 0) {
+                            note_table[i][j] = 1;
+                        } else if(note_table[i][j] == 2) {
+                            note_table[i][j] = 3;
+                            // tile_list[i][j].material.color.setHex(0xff0000);
+                        } else if(note_table[i][j] == 3) {
+                            note_table[i][j] = 2;
+                            // tile_list[i][j].material.color.setHex(0xdddddd);
                         } else {
-                            note_table[i][j] = false;
-                            tile_list[i][j].material.color.setHex(0x0000ff);
+                            note_table[i][j] = 0;
+                            // tile_list[i][j].material.color.setHex(0x0000ff);
                         }
                     }
                 }
@@ -165,22 +182,65 @@ function init()
         }
     }
 
+    function lighting(beat) {
+        for(let i = 0; i < KIND; i++) {
+            for(let j = 0; j < BLOCK; j++) {
+                if(note_table[i][j] == 2) {
+                    note_table[i][j] = 0;
+                } else if(note_table[i][j] == 3) {
+                    note_table[i][j] = 1;
+                }
+            }
+        }
 
+        for(let i = 0; i < KIND; i++) {
+            if(note_table[i][beat] == 1) {
+                note_table[i][beat] = 3;
+            } else if(note_table[i][beat] == 0) {
+                note_table[i][beat] = 2;
+            }
+        }
+
+        // note_table.map(li => {console.log(li)});
+    }
+
+    var count = 0;
+    function lightingSequence() {
+        lighting(count);
+        count++;
+        if(count == BLOCK)
+            count = 0;
+    }
+
+    // Updating every tick
+    var tick_count = 0;
     function tick() {
+        tick_count++;
+        if(tick_count == 30) {
+            tick_count = 0;
+            lightingSequence();
+        }
+
         // raycast
         raycaster.setFromCamera(mouse, camera);
         var flatten = tile_list.flat();
         const intersects = raycaster.intersectObjects(flatten);
         if(intersects.length > 0) {
-            for(let i = 0; i < 4; i++) {
-                for(let j = 0; j < 16; j++) {
-                    if(note_table[i][j] == true)
-                        continue;
-
-                    if (tile_list[i][j] === intersects[0].object) {
+            for(let i = 0; i < KIND; i++) {
+                for(let j = 0; j < BLOCK; j++) {
+                    if ((note_table[i][j] == 0 | note_table[i][j] == 2)
+                            & tile_list[i][j] === intersects[0].object) {
                         tile_list[i][j].material.color.setHex(0x777700);
                     } else {
-                        tile_list[i][j].material.color.setHex(0x0000ff);
+                        if(note_table[i][j] == 0) {
+                            tile_list[i][j].material.color.setHex(0x0000ff);
+                        } else if(note_table[i][j] == 1) {
+                            tile_list[i][j].material.color.setHex(0xffff00);
+                        } else if(note_table[i][j] == 2) {
+                            tile_list[i][j].material.color.setHex(0xdddddd);
+                        } else if(note_table[i][j] == 3) {
+                            tile_list[i][j].material.color.setHex(0xff0000);
+                        }
                     }
                 }
             }
@@ -193,5 +253,7 @@ function init()
         renderer.render(scene, camera);
         requestAnimationFrame(tick);
     }
+
+    tick();
 }
 
