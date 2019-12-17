@@ -1,9 +1,10 @@
 const webpack = require('webpack');
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     devtool: 'inline-source-map',
-    mode: 'development',
+    mode: 'production',
     entry: './js_sequencer.js', // 入力元のファイル名(エントリポイント)
     output: {
         filename: 'bundle.js' // 出力先のファイル名
@@ -27,5 +28,17 @@ module.exports = {
         new webpack.ProvidePlugin({
             'Tone': 'tone/build/Tone.js'
         })
-    ]
+    ],
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            terserOptions: {
+                compress: true,
+                output: {
+                    comments: false,
+                    beautify: false
+                }
+            }
+        })]
+    }
 }
