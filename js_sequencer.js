@@ -1,6 +1,7 @@
 import 'three/DragControls';
 import 'three/TrackballControls';
 import Tone from 'tone';
+import Snare from './snare';
 
 window.addEventListener('DOMContentLoaded', init);
 
@@ -15,10 +16,24 @@ var tick_count = 0;
 var margin = 0;
 var accum_margin = 0;
 
-//------------------------------------------------------------------
+//-------------------------
+const synth1 = new Tone.MembraneSynth({
+    pitchDecay: 0.01,
+    octaves: 1,
+    oscillator: {type: 'square4'},
+    envelope: {
+        attack: 0.001,
+        sustain: 0.01,
+        decay: 0.05,
+    },
+    volume: 0
+}).toMaster();
 
 const synth0 = new Tone.MembraneSynth().toMaster();
-const synth3 = new Tone.MetalSynth().toMaster();
+const synth2 = new Snare().noise.toMaster();
+const synth3 = new Tone.MetalSynth({volume: -10}).toMaster();
+
+const synth_list = [synth0, synth1, synth2, synth3];
 
 function loopInit() {
     count = 0;
@@ -197,8 +212,10 @@ function init()
                     }
                 }
             }
-            setLoop(synth0, note_table[0], eventid_list2[0]);
-            setLoop(synth3, note_table[3], eventid_list2[3]);
+
+            for(let i = 0; i < KIND; i++) {
+                setLoop(synth_list[i], note_table[i], eventid_list2[i]);
+            }
         }
     }
 
