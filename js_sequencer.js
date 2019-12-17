@@ -221,6 +221,20 @@ function init()
             lightingSequence();
         }
 
+        for(let i = 0; i < KIND; i++) {
+            for(let j = 0; j < BLOCK; j++) {
+                if(note_table[i][j] == 0) {
+                    tile_list[i][j].material.color.setHex(0x0000ff);
+                } else if(note_table[i][j] == 1) {
+                    tile_list[i][j].material.color.setHex(0xffff00);
+                } else if(note_table[i][j] == 2) {
+                    tile_list[i][j].material.color.setHex(0xdddddd);
+                } else if(note_table[i][j] == 3) {
+                    tile_list[i][j].material.color.setHex(0xff0000);
+                }
+            }
+        }
+
         // raycast
         raycaster.setFromCamera(mouse, camera);
         var flatten = tile_list.flat();
@@ -232,15 +246,6 @@ function init()
                             & tile_list[i][j] === intersects[0].object) {
                         tile_list[i][j].material.color.setHex(0x777700);
                     } else {
-                        if(note_table[i][j] == 0) {
-                            tile_list[i][j].material.color.setHex(0x0000ff);
-                        } else if(note_table[i][j] == 1) {
-                            tile_list[i][j].material.color.setHex(0xffff00);
-                        } else if(note_table[i][j] == 2) {
-                            tile_list[i][j].material.color.setHex(0xdddddd);
-                        } else if(note_table[i][j] == 3) {
-                            tile_list[i][j].material.color.setHex(0xff0000);
-                        }
                     }
                 }
             }
