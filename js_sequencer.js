@@ -3,6 +3,13 @@ import 'three/TrackballControls';
 import Tone from 'tone';
 import Snare from './snare';
 
+// TODO:
+// Add start/stop bottun on the canvas
+// Add mouse pad
+// Raycasting and get the position of mouse on the pad
+// Play sound whose frequency is following x position
+// Add the function of changing the number of block
+
 window.addEventListener('DOMContentLoaded', init);
 
 const KIND = 4;
